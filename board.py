@@ -1,5 +1,6 @@
 class Board:
 	def __init__(self, size):
+		self.columnIndex = [x for x in range(size)]		# This is for displaying the column numbers only
 		self.repr = []
 		for i in range(size):	# Adds rows to our matrix
 			self.repr.append([])
@@ -19,14 +20,20 @@ class Board:
 
 	def __str__(self):
 		""" Prints the board """
-		display = ""
+		display = "  "
+		for number in self.columnIndex:
+			display += str(number)+" "		# Adds column numbers
+		display += "\n"
+		rowNumber = 0
 		for row in self.repr:
+			display += str(rowNumber)+" "	# Adds row numbers
 			for piece in row:
 				display += piece+" "
 			display += "\n"
+			rowNumber += 1
 		return display
 
-	def modify(self, from_pos, to_pos):		# Assuming from_pos and to_pos are coordinate tuples
+	def movePiece(self, from_pos, to_pos):		# Assuming from_pos and to_pos are coordinate tuples
 		""" Modifies the game board when moving pieces """
 		moved_piece = self.repr[from_pos[0]][from_pos[1]]	# Saves the type of the piece we are moving (whether it is "X" or "O")
 		self.repr[from_pos[0]][from_pos[1]] = "."
@@ -39,17 +46,11 @@ class Board:
 		""" Modifies the board by removing a piece at specified coordinate """
 		self.repr[pos[0]][pos[1]] = "."
 
-testBoard = Board(8)
-print(testBoard)
-testBoard.modify((1,0),(1,4))
-print(testBoard)
-testBoard2 = Board(6)
-testBoard2.modify((2,2),(4,2))
-print(testBoard2)
-testBoard3 = Board(8)
-testBoard3.removePiece((4,4))
-print(testBoard3)
-print(testBoard3)
-
+newBoard = Board(8)
+print(newBoard)
+newBoard.removePiece((4,4))
+print(newBoard)
+newBoard.movePiece((2,4), (4,4))
+print(newBoard)
 
 
