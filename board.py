@@ -49,6 +49,7 @@ print(testBoard2)
 testBoard3 = Board(8)
 testBoard3.removePiece((4,4))
 print(testBoard3)
+print(testBoard3)
 
 
 
