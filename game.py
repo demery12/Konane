@@ -1,11 +1,12 @@
 from board import Board
 import copy
+import random
 
 class Game:
-	def __init__(self, board_size, board, start_player=0):
+	def __init__(self, board_size, board, player=0):
 		self.board_size = board_size
 		self.board = board
-		self.current_player = start_player
+		self.current_player = player
 		self.player_symbol = ('x','o')
 	def play(self):
 		pass
@@ -13,7 +14,12 @@ class Game:
 	# We need the inputs because we will want it to differ from self when we are down in the minimax tree
 	# We might not need self? 
 	def end_state(self, board, current_player):
-		return False
+		if empty(self.get_legal_moves(current_player)):	# i.e. if the current_player has no more moves then either: the current_player has no pieces left or has no legal moves
+			winning_player = 1 - self.current_player
+			print "Player" + str(winning_player) + "wins!"
+			return True
+		else:
+			return False
 
 	# Returns a list of of legal moves, as pairs of pairs e.g [((8,8),(5,8)),...]
 	def get_legal_moves(self, current_player):
@@ -59,11 +65,11 @@ class Game:
 
 
 
-		print legal_moves
-		return list()
+		# print legal_moves
+		return legal_moves
 
 	# Given a move e.g ((8,8),(5,8)), check if that is legal, return true if it is, false otherwise
-	def is_legal_move(self,current_player, move):
+	def is_legal_move(self, current_player, move):
 		# check (again) that the starting position is the right color
 		starting_pos = move[0]
 		ending_pos   = move[1]
@@ -86,12 +92,23 @@ class Game:
 		return True
 
 	# seqence when it is player's turn
-	def player_turn():
-		pass
+	def player_turn(self):
+		is_valid_input = False
+		while is_valid_input == False:
+			move_coordinates = (input("Please enter start coordinate: "), input("Please enter end coordinate: "))	# should be two tuples entered
+			actual_move_coordinates = ((move_coordinates[0][0]-1, move_coordinates[0][1]-1), (move_coordinates[1][0]-1, move_coordinates[1][1]-1))		# to convert user input (which is 1 indexed) to 0 indexed (which our board representation is in)
+			is_valid_input = self.is_legal_move(self.current_player, actual_move_coordinates)
+		self.board.movePiece(actual_move_coordinates[0], actual_move_coordinates[1])
+		print(self.board)
+		self.current_player = 1 - self.current_player		# switch player
 
-	# sequence when it is computer's turn
-	def computer_turn():
-		pass
+	# sequence when it is computer's turn (v1.0: computer makes a random legal move)
+	def computer_turn(self):
+		random_move =  random.choice(self.get_legal_moves(self.current_player))
+		self.board.movePiece(random_move[0], random_move[1])
+		print(self.board)
+		print "Made move: ", ((random_move[0][0]+1, random_move[0][1]+1), (random_move[1][0]+1, random_move[1][1]+1))	# to present the computer's move nicely to player
+		self.current_player = 1 - self.current_player
 
 	@staticmethod
 	def north_move(pos):
@@ -109,16 +126,23 @@ class Game:
 	def west_move(pos):
 		return (pos,(pos[0],pos[1]-2))
 
+def play_game(game_state):
+	# Must implement some code here to make the starting move of removing a piece.
+	while True: # not game_state.end_state(game_state):
+		if game_state.current_player == 0:
+
+			game_state.computer_turn()
+		else:
+			game_state.player_turn()
 
 def testo():
 	mygame = Game(8,Board(8))
-	print(mygame.board)
-	mygame.board.removePiece((0,0))
-	mygame.board.removePiece((4,4))
-	mygame.board.removePiece((5,5))
-	mygame.board.removePiece((7,7))
-	mygame.board.removePiece((2,4))
-	print(mygame.board)
-	mygame.get_legal_moves(0)
+	# mygame.board.removePiece((0,0))
+	mygame.board.removePiece((3,3))
+	# mygame.board.removePiece((5,5))
+	# mygame.board.removePiece((7,7))
+	# mygame.board.removePiece((2,4))
+	play_game(mygame)
 
 testo()
+
