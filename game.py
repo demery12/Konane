@@ -128,7 +128,7 @@ class Game:
 
 def play_game(game_state):
 	# Must implement some code here to make the starting move of removing a piece.
-	while True # not game_state.end_state(game_state):
+	while True: # not game_state.end_state(game_state):
 		if game_state.current_player == 0:
 
 			game_state.computer_turn()
