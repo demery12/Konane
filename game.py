@@ -15,7 +15,7 @@ class Game:
 	# We might not need self? 
 	def end_state(self, board, current_player):
 		if empty(self.get_legal_moves(current_player)):	# i.e. if the current_player has no more moves then either: the current_player has no pieces left or has no legal moves
-			winning_player = 1 + self.current_player
+			winning_player = 1 - self.current_player
 			print "Player" + str(winning_player) + "wins!"
 			return True
 		else:
