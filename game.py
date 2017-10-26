@@ -1,9 +1,9 @@
 from board import Board
 
 class Game:
-	def __init__(self, board_size, start_player=0):
+	def __init__(self, board_size, board, start_player=0):
 		self.board_size = board_size
-		self.board = Board(board_size)
+		self.board = board
 		self.current_player = start_player
 		self.player_symbol = ('x','o')
 	def play(self):
@@ -22,14 +22,21 @@ class Game:
 			for col in range(self.board_size):
 				if self.board.repr[row][col] == self.player_symbol[current_player]:
 					position  = (row,col)
-					move_list = [self.north_move(position),
-								 self.east_move(position),
-								 self.south_move(position),
-								 self.west_move(position)]
-
-					for move in move_list:
+					move_fn_list = [self.north_move,
+								 self.east_move,
+								 self.south_move,
+								 self.west_move]
+					for move_fn in move_fn_list:
+						move = move_fn(position)
 						if self.is_legal_move(current_player,move):
 					 		legal_moves.append(move)
+					 		start = move[0]
+					 		cur   = move[1]
+					 		continue_move = move_fn(cur)
+					 		while(self.is_legal_move(current_player, continue_move)):
+					 			legal_move.append((start,continue_move[1]))
+					 			continue_move = move_fn(continue_move[1])
+
 
 		print legal_moves
 		return list()
@@ -48,7 +55,7 @@ class Game:
 		if self.board.repr[ending_pos[0]][ending_pos[1]]!= '.':
 			return False
 		# Check the middle spot is the other piece
-
+		middle_pos = (starting_pos[0]+(starting_pos[0]-ending_pos[0])/2,starting_pos[1]+(starting_pos[1]-ending_pos[0])/2)
 
 		return True
 
@@ -76,8 +83,13 @@ class Game:
 	def west_move(pos):
 		return (pos,(pos[0],pos[1]-2))
 
+	@staticmethod
+	def get_middle_position(move):
+		# takes a move, returns the spot in between it
+		pass
+
 def testo():
-	mygame = Game(8)
+	mygame = Game(8,Board(8))
 	print(mygame.board)
 	mygame.board.removePiece((0,0))
 	mygame.board.removePiece((4,4))
