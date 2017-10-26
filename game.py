@@ -1,4 +1,5 @@
 from board import Board
+import copy
 
 class Game:
 	def __init__(self, board_size, board, start_player=0):
@@ -30,12 +31,32 @@ class Game:
 						move = move_fn(position)
 						if self.is_legal_move(current_player,move):
 					 		legal_moves.append(move)
+
+					 		# now we are going to check for a double jump!
 					 		start = move[0]
-					 		cur   = move[1]
-					 		continue_move = move_fn(cur)
-					 		while(self.is_legal_move(current_player, continue_move)):
-					 			legal_move.append((start,continue_move[1]))
-					 			continue_move = move_fn(continue_move[1])
+					 		cur_end   = move[1]
+
+					 		# Make a copy of the board, and then make the move on that board
+					 		new_board = copy.deepcopy(self.board)
+					 		new_board.movePiece(start,cur_end)
+
+					 		# Try to move again in the same direction
+					 		continue_move = move_fn(cur_end)
+
+					 		# make a whole new game state and check if our move is legal on that 
+					 		new_game_state = Game(self.board_size,new_board,current_player)
+					 		while(new_game_state.is_legal_move(current_player, continue_move)):
+					 			start_cur = cur_end
+					 			cur_end = continue_move[1]
+					 			legal_moves.append((start,cur_end))
+
+						 		new_board = copy.deepcopy(new_board)
+
+					 			new_board.movePiece(start_cur,cur_end)
+
+					 			continue_move = move_fn(cur_end)
+					 			new_game_state = Game(new_game_state.board_size,new_board,current_player)
+
 
 
 		print legal_moves
@@ -54,9 +75,14 @@ class Game:
 		# Check that landing spot is empty
 		if self.board.repr[ending_pos[0]][ending_pos[1]]!= '.':
 			return False
-		# Check the middle spot is the other piece
-		middle_pos = (starting_pos[0]+(starting_pos[0]-ending_pos[0])/2,starting_pos[1]+(starting_pos[1]-ending_pos[0])/2)
 
+		# Check the middle spot is the other piece - this should in theory not matter because the pieces alternate
+
+		middle_pos = (starting_pos[0]-(starting_pos[0]-ending_pos[0])/2,starting_pos[1]-(starting_pos[1]-ending_pos[1])/2)
+		other_player = 1 - current_player 
+
+		if self.board.repr[middle_pos[0]][middle_pos[1]] != self.player_symbol[other_player]:
+			return False 
 		return True
 
 	# seqence when it is player's turn
@@ -83,10 +109,6 @@ class Game:
 	def west_move(pos):
 		return (pos,(pos[0],pos[1]-2))
 
-	@staticmethod
-	def get_middle_position(move):
-		# takes a move, returns the spot in between it
-		pass
 
 def testo():
 	mygame = Game(8,Board(8))
@@ -95,6 +117,7 @@ def testo():
 	mygame.board.removePiece((4,4))
 	mygame.board.removePiece((5,5))
 	mygame.board.removePiece((7,7))
+	mygame.board.removePiece((2,4))
 	print(mygame.board)
 	mygame.get_legal_moves(0)
 

@@ -37,8 +37,12 @@ class Board:
 		""" Modifies the game board when moving pieces """
 		moved_piece = self.repr[from_pos[0]][from_pos[1]]	# Saves the type of the piece we are moving (whether it is "X" or "O")
 		self.repr[from_pos[0]][from_pos[1]] = "."
-		for x in range(from_pos[0], to_pos[0]+1):		# In order to iterate between the values of the from and to positions
-			for y in range(from_pos[1], to_pos[1]+1):	# Deletes every piece between the moving piece's starting and ending positions
+
+		x_range = sorted([from_pos[0], to_pos[0]+1])
+		y_range = sorted([from_pos[1], to_pos[1]+1])
+		for x in range(*x_range):		# In order to iterate between the values of the from and to positions
+			for y in range(*y_range):
+				# Deletes every piece between the moving piece's starting and ending positions
 				self.repr[x][y] = "."
 		self.repr[to_pos[0]][to_pos[1]] = moved_piece	# Places the piece in it's final position
 
@@ -46,11 +50,12 @@ class Board:
 		""" Modifies the board by removing a piece at specified coordinate """
 		self.repr[pos[0]][pos[1]] = "."
 
-newBoard = Board(8)
-print(newBoard)
-newBoard.removePiece((4,4))
-print(newBoard)
-newBoard.movePiece((2,4), (4,4))
-print(newBoard)
+def testie():
+	newBoard = Board(8)
+	print(newBoard)
+	newBoard.removePiece((4,4))
+	print(newBoard)
+	newBoard.movePiece((2,4), (4,4))
+	print(newBoard)
 
 
