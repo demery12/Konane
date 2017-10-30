@@ -2,14 +2,36 @@ from board import Board
 import copy
 import random
 
+def minimax(game_state, depth_bound):
+	if game_state.depth == depth_bound:
+		return (game_state.static_evaluation(), game_state[1]) 	# NEEDS WORK
+	elif game_state.current_player == 0:	# i.e is AI turn (max node)
+		bestmove = None
+		cbv = float("-inf")
+		for successor_game_state in game_state.generate_successors():
+			bv, move = minimax(successor_game_state, depth_bound)
+			if bv > cbv:
+				cbv = bv
+				bestmove = move
+			return (cbv, bestmove)
+	else: 	# i.e looking at player turn (min node)
+		bestmove = None
+		cbv = float("inf")
+		for successor_game_state in game_state.generate_successors():
+			bv, move = minimax(successor_game_state, depth_bound)
+			if bv < cbv:
+				cbv = bv
+				bestmove = move
+			return (cbv, bestmove)
+
 class Game:
-	def __init__(self, board_size, board, player=0):
+	def __init__(self, board_size, board, player=0, last_move_made = ((),()), depth=0):
 		self.board_size = board_size
 		self.board = board
+		self.last_move_made = last_move_made
 		self.current_player = player
+		self.depth = depth
 		self.player_symbol = ('x','o')
-	def play(self):
-		pass
 	# Returns a boolean of whether the game is over
 	# We need the inputs because we will want it to differ from self when we are down in the minimax tree
 	# We might not need self? 
@@ -90,8 +112,13 @@ class Game:
 		if self.board.repr[middle_pos[0]][middle_pos[1]] != self.player_symbol[other_player]:
 			return False 
 		return True
-
 	# seqence when it is player's turn
+	def generate_successors(self):
+		successors = []
+		for move in self.get_legal_moves:
+			successors.append(Game(self.board_size, board.movePiece(move[0], move[1]), move, 1-current_player, depth))
+		return successors
+
 	def player_turn(self):
 		is_valid_input = False
 		while is_valid_input == False:
@@ -100,14 +127,22 @@ class Game:
 			is_valid_input = self.is_legal_move(self.current_player, actual_move_coordinates)
 		self.board.movePiece(actual_move_coordinates[0], actual_move_coordinates[1])
 		print(self.board)
+		self.last_move_made = move_coordinates
 		self.current_player = 1 - self.current_player		# switch player
+		# return Game(board_size, Board.makeMove(actual_move_coordinates[0], actual_move_coordinates[1]) , (actual_move_coordinates[0], actual_move_coordinates[1]), 1-current_player, depth=0)
+
 
 	# sequence when it is computer's turn (v1.0: computer makes a random legal move)
 	def computer_turn(self):
-		random_move =  random.choice(self.get_legal_moves(self.current_player))
-		self.board.movePiece(random_move[0], random_move[1])
+		# random_move =  random.choice(self.get_legal_moves(self.current_player))
+		# self.board.movePiece(random_move[0], random_move[1])
+		# print(self.board)
+		# print "Made move: ", ((random_move[0][0]+1, random_move[0][1]+1), (random_move[1][0]+1, random_move[1][1]+1))	# to present the computer's move nicely to player
+		computer_move = minimax(self, self.depth)[1]
+		self.board.movePiece(computer_move[0], computer_move[1])
 		print(self.board)
-		print "Made move: ", ((random_move[0][0]+1, random_move[0][1]+1), (random_move[1][0]+1, random_move[1][1]+1))	# to present the computer's move nicely to player
+		print "Made move: ", ((computer_move[0][0]+1, computer_move[0][1]+1), (computer_move[1][0]+1, computer_move[1][1]+1))
+		self.last_move_made = computer_move
 		self.current_player = 1 - self.current_player
 
 	@staticmethod
@@ -126,23 +161,31 @@ class Game:
 	def west_move(pos):
 		return (pos,(pos[0],pos[1]-2))
 
+	def static_evaluation(self):		# simple heuristic for now
+		my_moves = self.get_legal_moves(self.current_player)
+		opponent_moves = self.get_legal_moves(1-self.current_player)
+		return len(my_moves) - len(opponent_moves)
+
 def play_game(game_state):
 	# Must implement some code here to make the starting move of removing a piece.
 	while True: # not game_state.end_state(game_state):
 		if game_state.current_player == 0:
-
 			game_state.computer_turn()
 		else:
 			game_state.player_turn()
 
 def testo():
-	mygame = Game(8,Board(8))
+	mygame = Game(8,Board(8), 1)
+	mygame.board.removePiece((4,3))
+	print(mygame.board)
 	# mygame.board.removePiece((0,0))
-	mygame.board.removePiece((3,3))
 	# mygame.board.removePiece((5,5))
 	# mygame.board.removePiece((7,7))
 	# mygame.board.removePiece((2,4))
 	play_game(mygame)
 
 testo()
+
+
+
 
