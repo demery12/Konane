@@ -3,13 +3,13 @@ import copy
 import random
 
 def minimax(game_state, depth_bound):
-	if game_state.depth == depth_bound:
-		return (game_state.static_evaluation(), game_state[1]) 	# NEEDS WORK
+	if depth_bound == 3:
+		return (game_state.static_evaluation(), game_state.last_move_made) 	# NEEDS WORK
 	elif game_state.current_player == 0:	# i.e is AI turn (max node)
 		bestmove = None
 		cbv = float("-inf")
 		for successor_game_state in game_state.generate_successors():
-			bv, move = minimax(successor_game_state, depth_bound)
+			bv, move = minimax(successor_game_state, depth_bound+1)
 			if bv > cbv:
 				cbv = bv
 				bestmove = move
@@ -18,7 +18,7 @@ def minimax(game_state, depth_bound):
 		bestmove = None
 		cbv = float("inf")
 		for successor_game_state in game_state.generate_successors():
-			bv, move = minimax(successor_game_state, depth_bound)
+			bv, move = minimax(successor_game_state, depth_bound+1)
 			if bv < cbv:
 				cbv = bv
 				bestmove = move
@@ -115,8 +115,10 @@ class Game:
 	# seqence when it is player's turn
 	def generate_successors(self):
 		successors = []
-		for move in self.get_legal_moves:
-			successors.append(Game(self.board_size, board.movePiece(move[0], move[1]), move, 1-current_player, depth))
+		for moves in self.get_legal_moves(self.current_player):
+			boardCopy = copy.deepcopy(self.board)
+			boardCopy.movePiece(moves[0], moves[1])
+			successors.append(Game(self.board_size, boardCopy, moves, 1-self.current_player, self.depth))
 		return successors
 
 	def player_turn(self):
@@ -138,7 +140,8 @@ class Game:
 		# self.board.movePiece(random_move[0], random_move[1])
 		# print(self.board)
 		# print "Made move: ", ((random_move[0][0]+1, random_move[0][1]+1), (random_move[1][0]+1, random_move[1][1]+1))	# to present the computer's move nicely to player
-		computer_move = minimax(self, self.depth)[1]
+		computer_move = minimax(self, 0)[1]
+		print(computer_move)
 		self.board.movePiece(computer_move[0], computer_move[1])
 		print(self.board)
 		print "Made move: ", ((computer_move[0][0]+1, computer_move[0][1]+1), (computer_move[1][0]+1, computer_move[1][1]+1))
