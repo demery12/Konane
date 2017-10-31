@@ -3,7 +3,8 @@ import copy
 import random
 
 def minimax(game_state, depth_bound):
-	if depth_bound == 3:
+	if depth_bound == 2:
+		print "LAST", game_state.last_move_made
 		return (game_state.static_evaluation(), game_state.last_move_made) 	# NEEDS WORK
 	elif game_state.current_player == 0:	# i.e is AI turn (max node)
 		bestmove = None
@@ -13,7 +14,8 @@ def minimax(game_state, depth_bound):
 			if bv > cbv:
 				cbv = bv
 				bestmove = move
-			return (cbv, bestmove)
+		print "COMP", bestmove
+		return (cbv, bestmove)
 	else: 	# i.e looking at player turn (min node)
 		bestmove = None
 		cbv = float("inf")
@@ -22,7 +24,8 @@ def minimax(game_state, depth_bound):
 			if bv < cbv:
 				cbv = bv
 				bestmove = move
-			return (cbv, bestmove)
+		print bestmove
+		return (cbv, bestmove)
 
 class Game:
 	def __init__(self, board_size, board, player=0, last_move_made = ((),()), depth=0):
@@ -115,10 +118,13 @@ class Game:
 	# seqence when it is player's turn
 	def generate_successors(self):
 		successors = []
-		for moves in self.get_legal_moves(self.current_player):
+		for move in self.get_legal_moves(self.current_player):
 			boardCopy = copy.deepcopy(self.board)
-			boardCopy.movePiece(moves[0], moves[1])
-			successors.append(Game(self.board_size, boardCopy, moves, 1-self.current_player, self.depth))
+			boardCopy.movePiece(move[0], move[1])
+			successors.append(Game(self.board_size, boardCopy, 1-self.current_player, move, self.depth))
+		for s in successors:
+			if False:
+				print s.board
 		return successors
 
 	def player_turn(self):
@@ -140,7 +146,10 @@ class Game:
 		# self.board.movePiece(random_move[0], random_move[1])
 		# print(self.board)
 		# print "Made move: ", ((random_move[0][0]+1, random_move[0][1]+1), (random_move[1][0]+1, random_move[1][1]+1))	# to present the computer's move nicely to player
-		computer_move = minimax(self, 0)[1]
+		computer_move = minimax(self, 0)
+		computer_move = computer_move[1]
+		print "FROM BOARD:"
+		print self.board
 		print(computer_move)
 		self.board.movePiece(computer_move[0], computer_move[1])
 		print(self.board)
@@ -178,8 +187,8 @@ def play_game(game_state):
 			game_state.player_turn()
 
 def testo():
-	mygame = Game(8,Board(8), 1)
-	mygame.board.removePiece((4,3))
+	mygame = Game(8,Board(8), 0)
+	mygame.board.removePiece((4,4))
 	print(mygame.board)
 	# mygame.board.removePiece((0,0))
 	# mygame.board.removePiece((5,5))
