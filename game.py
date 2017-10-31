@@ -3,28 +3,27 @@ import copy
 import random
 
 def minimax(game_state, depth_bound):
-	if depth_bound == 2:
-		print "LAST", game_state.last_move_made
-		return (game_state.static_evaluation(), game_state.last_move_made) 	# NEEDS WORK
+	if depth_bound == 4:
+		return (game_state.static_evaluation(), None) 	# It is irrelevant what we return int second slot
 	elif game_state.current_player == 0:	# i.e is AI turn (max node)
 		bestmove = None
 		cbv = float("-inf")
 		for successor_game_state in game_state.generate_successors():
-			bv, move = minimax(successor_game_state, depth_bound+1)
+			# player_move just gets discarded
+			bv, player_move = minimax(successor_game_state, depth_bound+1)
 			if bv > cbv:
 				cbv = bv
-				bestmove = move
-		print "COMP", bestmove
+				bestmove = successor_game_state.last_move_made
 		return (cbv, bestmove)
 	else: 	# i.e looking at player turn (min node)
 		bestmove = None
 		cbv = float("inf")
 		for successor_game_state in game_state.generate_successors():
-			bv, move = minimax(successor_game_state, depth_bound+1)
+			# computer_move is not relevant, we just need to return both for later
+			bv, computer_move = minimax(successor_game_state, depth_bound+1)
 			if bv < cbv:
 				cbv = bv
-				bestmove = move
-		print bestmove
+				bestmove = successor_game_state.last_move_made
 		return (cbv, bestmove)
 
 class Game:
