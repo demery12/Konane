@@ -49,13 +49,3 @@ class Board:
 	def removePiece(self, pos):		# pos should be a coordinate tuple
 		""" Modifies the board by removing a piece at specified coordinate """
 		self.repr[pos[0]][pos[1]] = "."
-
-def testie():
-	newBoard = Board(8)
-	print(newBoard)
-	newBoard.removePiece((4,4))
-	print(newBoard)
-	newBoard.movePiece((2,4), (4,4))
-	print(newBoard)
-
-
