@@ -1,32 +1,44 @@
 from board import Board
 import copy
 import random
-
+static_eval_count = 0
+minimax_calls     = 0
+total_branches    = 0
+cutoffs           = 0
 def minimax(game_state, alpha, beta, depth_bound):
+	global minimax_calls
+	global total_branches
+	global static_eval_count
+	global cutoffs
 	if depth_bound == 4:
+		static_eval_count += 1
 		return (game_state.static_evaluation(), None) 	# It is irrelevant what we return int second slot
-	
 	elif game_state.current_player == 0:	# i.e is AI turn (max node)
 		bestmove = None
+		minimax_calls += 1
 		for successor_game_state in game_state.generate_successors():
-
+			total_branches += 1
 			# player_move just gets discarded
 			bv, player_move = minimax(successor_game_state, alpha, beta, depth_bound+1)
 			if bv > alpha:
 				alpha = bv
 				bestmove = successor_game_state.last_move_made
 			if alpha >= beta:
+				cutoffs +=1
 				return (beta, bestmove)
 		return (alpha, bestmove)
 	else: 	# i.e looking at player turn (min node)
 		bestmove = None
+		minimax_calls += 1
 		for successor_game_state in game_state.generate_successors():
+			total_branches += 1
 			# computer_move is not relevant, we just need to return both for later
 			bv, computer_move = minimax(successor_game_state, alpha, beta, depth_bound+1)
 			if bv < beta:
 				beta = bv
 				bestmove = successor_game_state.last_move_made
 			if beta <= alpha:
+				cutoffs +=1
 				return (alpha, bestmove)
 		return (beta, bestmove)
 
@@ -121,41 +133,53 @@ class Game:
 		return successors
 
 	def player_turn(self):
-		if len(self.get_legal_moves(self.current_player)) != 0:
-			is_valid_input = False
-			while is_valid_input == False:
-				move_coordinates = (input("Please enter start coordinate: "), input("Please enter end coordinate: "))	# should be two tuples entered
-				actual_move_coordinates = ((move_coordinates[0][0]-1, move_coordinates[0][1]-1), (move_coordinates[1][0]-1, move_coordinates[1][1]-1))		# to convert user input (which is 1 indexed) to 0 indexed (which our board representation is in)
-				is_valid_input = self.is_legal_move(self.current_player, actual_move_coordinates)
-			self.board.movePiece(actual_move_coordinates[0], actual_move_coordinates[1])
-			print(self.board)
-			self.last_move_made = move_coordinates
-			self.current_player = 1 - self.current_player		# switch player
-			# return Game(board_size, Board.makeMove(actual_move_coordinates[0], actual_move_coordinates[1]) , (actual_move_coordinates[0], actual_move_coordinates[1]), 1-current_player)
+		try:
+			legal_moves = self.get_legal_moves(self.current_player)
+			print legal_moves
+			if len(legal_moves) != 0:
+				is_valid_input = False
+				while is_valid_input == False:
+					move_coordinates = (input("Please enter start coordinate: "), input("Please enter end coordinate: "))	# should be two tuples entered
+					actual_move_coordinates = ((move_coordinates[0][0]-1, move_coordinates[0][1]-1), (move_coordinates[1][0]-1, move_coordinates[1][1]-1))		# to convert user input (which is 1 indexed) to 0 indexed (which our board representation is in)
+					is_valid_input =  actual_move_coordinates in legal_moves
+				self.board.movePiece(actual_move_coordinates[0], actual_move_coordinates[1])
+				print(self.board)
+				self.last_move_made = move_coordinates
+				self.current_player = 1 - self.current_player		# switch player
+				# return Game(board_size, Board.makeMove(actual_move_coordinates[0], actual_move_coordinates[1]) , (actual_move_coordinates[0], actual_move_coordinates[1]), 1-current_player)
 
-		else:
-			self.endgame = 1
-			print "Player", self.current_player, "loses!"
+			else:
+				self.endgame = 1
+				print "Player", self.player_symbol[self.current_player], "loses!"
+		except KeyboardInterrupt:
+			raise
+		except:
+			print "You messed up, you dingus"
+			self.player_turn()
 	# sequence when it is computer's turn (v1.0: computer makes a random legal move)
 	def computer_turn(self):
-		# random_move =  random.choice(self.get_legal_moves(self.current_player))
-		# self.board.movePiece(random_move[0], random_move[1])
-		# print(self.board)
-		# print "Made move: ", ((random_move[0][0]+1, random_move[0][1]+1), (random_move[1][0]+1, random_move[1][1]+1))	# to present the computer's move nicely to player
+		global minimax_calls
+		if len(self.get_legal_moves(self.current_player)) != 0:
 			computer_move = minimax(self, float("-inf"), float("inf"), 0)
 			computer_move = computer_move[1]
 			print "FROM BOARD:"
 			print self.board
 			if computer_move is not None:
-				print(computer_move)
 				self.board.movePiece(computer_move[0], computer_move[1])
 				print(self.board)
 				print "Made move: ", ((computer_move[0][0]+1, computer_move[0][1]+1), (computer_move[1][0]+1, computer_move[1][1]+1))
 				self.last_move_made = computer_move
 				self.current_player = 1 - self.current_player
 			else:
-				self.endgame = 1
-				print "Player", self.current_player, "loses!"
+				random_move =  random.choice(self.get_legal_moves(self.current_player))
+				self.board.movePiece(random_move[0], random_move[1])
+				print(self.board)
+				print "Made move: ", ((random_move[0][0]+1, random_move[0][1]+1), (random_move[1][0]+1, random_move[1][1]+1))	# to present the computer's move nicely to player
+				self.last_move_made = computer_move
+				self.current_player = 1 - self.current_player
+		else:
+			self.endgame = 1
+			print "Player", self.player_symbol[self.current_player], "loses!"
 
 	@staticmethod
 	def north_move(pos):
@@ -174,12 +198,22 @@ class Game:
 		return (pos,(pos[0],pos[1]-2))
 
 	def static_evaluation(self):		# simple heuristic for now
-		my_moves = self.get_legal_moves(self.current_player)
-		opponent_moves = self.get_legal_moves(1-self.current_player)
+		my_moves = self.get_legal_moves(0)
+		opponent_moves = self.get_legal_moves(1)
+		if opponent_moves == 0:
+			return float("inf")
+		if my_moves == 0:
+			return float("-inf")
 		return len(my_moves) - len(opponent_moves)
 
 def play_game(game_state):
 	# Must implement some code here to make the starting move of removing a piece.
+	print game_state.board
+	to_remove = input("x remove a piece: ")
+	game_state.board.removePiece((to_remove[0]-1,to_remove[1]-1))
+	print game_state.board
+	to_remove = input("o remove a piece: ")
+	game_state.board.removePiece((to_remove[0]-1,to_remove[1]-1))
 	while game_state.endgame != 1: # not game_state.end_state():
 		if game_state.current_player == 0:
 			game_state.computer_turn()
@@ -195,9 +229,53 @@ def testo():
 	# mygame.board.removePiece((7,7))
 	# mygame.board.removePiece((2,4))
 	play_game(mygame)
+	print "NUM STATIC EVALS:", static_eval_count
+	print "AVG BRANCHING FACTOR:", total_branches/(minimax_calls+0.0)
+	print "NUM CUTOFFS", cutoffs
+def testo2():
+	mygame = Game(8,Board(8), 0)
+	mygame.board.movePiece((0,4),(0,0))
+	mygame.board.removePiece((0,6))
+	mygame.board.removePiece((0,7))
+	mygame.board.removePiece((1,0))
+	mygame.board.movePiece((1,0),(1,6))
+	mygame.board.movePiece((2,3),(2,6))
+	mygame.board.removePiece((3,0))
+	mygame.board.movePiece((3,0),(3,4))
+	mygame.board.movePiece((4,0),(4,6))
+	mygame.board.movePiece((5,4),(5,0))
+	mygame.board.movePiece((1,6),(6,6))
+	mygame.board.movePiece((5,4),(7,4))
+	mygame.board.movePiece((5,1),(7,1))
+	mygame.board.removePiece((6,0))
+	mygame.board.removePiece((6,2))
+	print(mygame.board)
+	play_game(mygame)
 
-testo()
+def play_double_test():
+	mygame = Game(8,Board(8), 1)
+	mygame.board.removePiece((0,3))
+	mygame.board.removePiece((0,5))
+	print mygame.board
+	play_game(mygame)
 
+
+def showdown4():
+	mygame = Game(4,Board(4),1)
+	mygame.board.removePiece((2,3))
+	print mygame.board
+	play_game(mygame)
+
+def play_ball():
+	mygame = Game(8,Board(8), 0)
+	play_game(mygame)
+#play_double_test()
+
+
+play_ball()
+
+#showdown4()
+#testo()
 
 
 
