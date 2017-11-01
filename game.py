@@ -1,10 +1,12 @@
 from board import Board
 import copy
 import random
+
 static_eval_count = 0
 minimax_calls     = 0
 total_branches    = 0
 cutoffs           = 0
+
 def minimax(game_state, alpha, beta, depth_bound):
 	global minimax_calls
 	global total_branches
@@ -12,7 +14,7 @@ def minimax(game_state, alpha, beta, depth_bound):
 	global cutoffs
 	if depth_bound == 4:
 		static_eval_count += 1
-		return (game_state.static_evaluation(), None) 	# It is irrelevant what we return int second slot
+		return (game_state.static_evaluation(), None) 	# it is irrelevant what we return int second slot
 	elif game_state.current_player == 0:	# i.e is AI turn (max node)
 		bestmove = None
 		minimax_calls += 1
@@ -51,9 +53,8 @@ class Game:
 		self.player_symbol = ('x','o')
 		self.endgame = 0
 
-	# Returns a list of of legal moves, as pairs of pairs e.g [((8,8),(5,8)),...]
 	def get_legal_moves(self, current_player):
-		# Just check all the things...
+		""" Returns a list of of legal moves, as pairs of pairs e.g [((8,8),(5,8)),...] """
 		legal_moves = []
 		for row in range(self.board_size):
 			for col in range(self.board_size):
@@ -67,60 +68,40 @@ class Game:
 						move = move_fn(position)
 						if self.is_legal_move(current_player,move):
 					 		legal_moves.append(move)
-
 					 		# now we are going to check for a double jump!
 					 		start = move[0]
 					 		cur_end   = move[1]
-
-					 		# Make a copy of the board, and then make the move on that board
-					 		new_board = copy.deepcopy(self.board)
+					 		new_board = copy.deepcopy(self.board)	# Make a copy of the board, and then make the move on that board
 					 		new_board.movePiece(start,cur_end)
-
-					 		# Try to move again in the same direction
-					 		continue_move = move_fn(cur_end)
-
-					 		# make a whole new game state and check if our move is legal on that 
-					 		new_game_state = Game(self.board_size,new_board,current_player)
+					 		continue_move = move_fn(cur_end)		# Try to move again in the same direction
+					 		new_game_state = Game(self.board_size,new_board,current_player)			# make a whole new game state and check if our move is legal on that 
 					 		while(new_game_state.is_legal_move(current_player, continue_move)):
 					 			start_cur = cur_end
 					 			cur_end = continue_move[1]
 					 			legal_moves.append((start,cur_end))
-
 						 		new_board = copy.deepcopy(new_board)
-
 					 			new_board.movePiece(start_cur,cur_end)
-
 					 			continue_move = move_fn(cur_end)
 					 			new_game_state = Game(new_game_state.board_size,new_board,current_player)
-
-
-
-		# print legal_moves
 		return legal_moves
 
-	# Given a move e.g ((8,8),(5,8)), check if that is legal, return true if it is, false otherwise
 	def is_legal_move(self, current_player, move):
-		# check (again) that the starting position is the right color
+		""" Given a move e.g ((8,8),(5,8)), check if that is legal, return true if it is, false otherwise """
 		starting_pos = move[0]
 		ending_pos   = move[1]
-		if ending_pos[0] not in range(self.board_size) or ending_pos[1] not in range(self.board_size):		# Discard any generated moves that fall off of the board
+		if ending_pos[0] not in range(self.board_size) or ending_pos[1] not in range(self.board_size):	# Discard any generated moves that fall off of the board
 			return False 
 		if self.board.repr[starting_pos[0]][starting_pos[1]]!=self.player_symbol[current_player]:
 			print "this should never trigger and is redundant"
 			return False
-		# Check that landing spot is empty
-		if self.board.repr[ending_pos[0]][ending_pos[1]]!= '.':
+		if self.board.repr[ending_pos[0]][ending_pos[1]]!= '.':	# Check that landing spot is empty
 			return False
-
-		# Check the middle spot is the other piece - this should in theory not matter because the pieces alternate
-
-		middle_pos = (starting_pos[0]-(starting_pos[0]-ending_pos[0])/2,starting_pos[1]-(starting_pos[1]-ending_pos[1])/2)
+		middle_pos = (starting_pos[0]-(starting_pos[0]-ending_pos[0])/2,starting_pos[1]-(starting_pos[1]-ending_pos[1])/2)	# Check the middle spot is the other piece - this should in theory not matter because the pieces alternate
 		other_player = 1 - current_player 
-
 		if self.board.repr[middle_pos[0]][middle_pos[1]] != self.player_symbol[other_player]:
 			return False 
 		return True
-	# seqence when it is player's turn
+
 	def generate_successors(self):
 		successors = []
 		for move in self.get_legal_moves(self.current_player):
@@ -140,14 +121,12 @@ class Game:
 				is_valid_input = False
 				while is_valid_input == False:
 					move_coordinates = (input("Please enter start coordinate: "), input("Please enter end coordinate: "))	# should be two tuples entered
-					actual_move_coordinates = ((move_coordinates[0][0]-1, move_coordinates[0][1]-1), (move_coordinates[1][0]-1, move_coordinates[1][1]-1))		# to convert user input (which is 1 indexed) to 0 indexed (which our board representation is in)
+					actual_move_coordinates = ((move_coordinates[0][0]-1, move_coordinates[0][1]-1), (move_coordinates[1][0]-1, move_coordinates[1][1]-1))	# to convert user input (which is 1 indexed) to 0 indexed (which our board representation is in)
 					is_valid_input =  actual_move_coordinates in legal_moves
 				self.board.movePiece(actual_move_coordinates[0], actual_move_coordinates[1])
 				print(self.board)
 				self.last_move_made = move_coordinates
-				self.current_player = 1 - self.current_player		# switch player
-				# return Game(board_size, Board.makeMove(actual_move_coordinates[0], actual_move_coordinates[1]) , (actual_move_coordinates[0], actual_move_coordinates[1]), 1-current_player)
-
+				self.current_player = 1 - self.current_player
 			else:
 				self.endgame = 1
 				print "Player", self.player_symbol[self.current_player], "loses!"
@@ -156,7 +135,7 @@ class Game:
 		except:
 			print "You messed up, you dingus"
 			self.player_turn()
-	# sequence when it is computer's turn (v1.0: computer makes a random legal move)
+
 	def computer_turn(self):
 		global minimax_calls
 		if len(self.get_legal_moves(self.current_player)) != 0:
@@ -197,7 +176,7 @@ class Game:
 	def west_move(pos):
 		return (pos,(pos[0],pos[1]-2))
 
-	def static_evaluation(self):		# simple heuristic for now
+	def static_evaluation(self):
 		my_moves = self.get_legal_moves(0)
 		opponent_moves = self.get_legal_moves(1)
 		if opponent_moves == 0:
@@ -207,22 +186,21 @@ class Game:
 		return len(my_moves) - len(opponent_moves)
 
 def play_game(game_state):
-	# Must implement some code here to make the starting move of removing a piece.
 	print game_state.board
 	to_remove = input("x remove a piece: ")
 	game_state.board.removePiece((to_remove[0]-1,to_remove[1]-1))
 	print game_state.board
 	to_remove = input("o remove a piece: ")
 	game_state.board.removePiece((to_remove[0]-1,to_remove[1]-1))
-	while game_state.endgame != 1: # not game_state.end_state():
+	while game_state.endgame != 1:
 		if game_state.current_player == 0:
 			game_state.computer_turn()
 		else:
-			game_state.computer_turn()
+			game_state.player_turn()
 
 def testo():
 	mygame = Game(8,Board(8), 1)
-	mygame.board.removePiece((2,1))
+	# mygame.board.removePiece((2,1))
 	print(mygame.board)
 	# mygame.board.removePiece((0,0))
 	# mygame.board.removePiece((5,5))
@@ -267,12 +245,11 @@ def showdown4():
 	play_game(mygame)
 
 def play_ball():
-	mygame = Game(8,Board(8), 0)
+	mygame = Game(5,Board(5), 0)
 	play_game(mygame)
 #play_double_test()
 
-
-play_ball()
+testo()
 
 #showdown4()
 #testo()
