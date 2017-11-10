@@ -8,42 +8,38 @@ minimax_calls     = 0
 total_branches    = 0
 cutoffs           = 0
 
-def minimax(game_state, alpha, beta, depth_bound):
-	global minimax_calls
-	global total_branches
+def minimax(game_state, depth_bound):
 	global static_eval_count
-	global cutoffs
-	if depth_bound == 4:
+	global minimax_calls     
+	global total_branches    
+	global cutoffs 
+	if depth_bound == 1:
 		static_eval_count += 1
-		return (game_state.static_evaluation(), None) 	# it is irrelevant what we return int second slot
+		return (game_state.static_evaluation(), None) 	# It is irrelevant what we return int second slot
 	elif game_state.current_player == 0:	# i.e is AI turn (max node)
 		bestmove = None
 		minimax_calls += 1
+		cbv = float("-inf")
 		for successor_game_state in game_state.generate_successors():
 			total_branches += 1
 			# player_move just gets discarded
-			bv, player_move = minimax(successor_game_state, alpha, beta, depth_bound+1)
-			if bv > alpha:
-				alpha = bv
+			bv, player_move = minimax(successor_game_state, depth_bound+1)
+			if bv > cbv:
+				cbv = bv
 				bestmove = successor_game_state.last_move_made
-			if alpha >= beta:
-				cutoffs +=1
-				return (beta, bestmove)
-		return (alpha, bestmove)
+		return (cbv, bestmove)
 	else: 	# i.e looking at player turn (min node)
 		bestmove = None
 		minimax_calls += 1
+		cbv = float("inf")
 		for successor_game_state in game_state.generate_successors():
 			total_branches += 1
 			# computer_move is not relevant, we just need to return both for later
-			bv, computer_move = minimax(successor_game_state, alpha, beta, depth_bound+1)
-			if bv < beta:
-				beta = bv
+			bv, computer_move = minimax(successor_game_state, depth_bound+1)
+			if bv < cbv:
+				cbv = bv
 				bestmove = successor_game_state.last_move_made
-			if beta <= alpha:
-				cutoffs +=1
-				return (alpha, bestmove)
-		return (beta, bestmove)
+		return (cbv, bestmove)
 
 class Game:
 	def __init__(self, board_size, board, player=0, last_move_made = ((),())):
@@ -140,7 +136,7 @@ class Game:
 	def computer_turn(self):
 		global minimax_calls
 		if len(self.get_legal_moves(self.current_player)) != 0:
-			computer_move = minimax(self, float("-inf"), float("inf"), 0)
+			computer_move = minimax(self, 0)
 			computer_move = computer_move[1]
 			print "FROM BOARD:"
 			print self.board
