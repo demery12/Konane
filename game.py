@@ -1,6 +1,7 @@
 from board import Board
 import copy
 import random
+import time
 
 static_eval_count = 0
 minimax_calls     = 0
@@ -196,4 +197,24 @@ def play_game(game_state):
 		if game_state.current_player == 0:
 			game_state.computer_turn()
 		else:
-			game_state.player_turn()
+			game_state.computer_turn()
+
+def test_game(game_state):
+	game_state.board.removePiece((3,3))
+	print game_state.board
+	game_state.board.removePiece((3,2))
+	print game_state.board
+	while game_state.endgame != 1:
+		if game_state.current_player == 0:
+			game_state.computer_turn()
+		else:
+			game_state.computer_turn()
+
+
+if __name__ == '__main__':
+	start = time.time()
+	test_game(Game(8,Board(8)))
+	print "GAME TOOK", time.time() - start, "SECONDS"
+	print "NUM STATIC EVALS:", static_eval_count
+	print "AVG BRANCHING FACTOR:", total_branches/(minimax_calls+0.0)
+	print "NUM CUTOFFS", cutoffs
