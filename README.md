@@ -1,4 +1,4 @@
-# Konane
+# Konane - Winner of our class AI tournament!
 
 By Dylan Emery and Christopher Villalta
 
